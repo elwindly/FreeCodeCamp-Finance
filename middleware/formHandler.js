@@ -9,7 +9,7 @@ const checkParams = (req, res, next) => {
 
     req.sanitize('shares').escape();
     req.sanitize('shares').trim();
-    req.checkBody('shares', 'Invalid number').notEmpty().isInt();
+    req.checkBody('shares', 'Invalid number').notEmpty().isInt({ min: 0});
     
     const errors = req.validationErrors();
     

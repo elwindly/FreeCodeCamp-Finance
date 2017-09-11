@@ -6,8 +6,6 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const expressValidator = require('express-validator');
-const flash = require('express-flash');
-const cookieParser = require('cookie-parser');
 const hbs = require('hbs')
 const { mongoose } = require('./db/mongoose');
 const MongoStore = require('connect-mongo')(session);
@@ -30,8 +28,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
 
 
-// app.use(express.cookieParser('keyboard cat'));
-// app.use(flash());
 app.use(session({
     secret: 'yoursecret',
     resave: true,

@@ -65,14 +65,16 @@ function StockController() {
 
     this.sellStock = ( async (req, res) => {
         try {
-            const symbol = req.body.symbol;
-            const shares = req.body.shares;
+            const symbol = req.body.symbol.toUpperCase();;
+            const shares = Number(req.body.shares);
             const dataFromDb = await Stocks.findOne({owner: req.session._id, symbol: symbol});
 
             if (!dataFromDb) {
                 return res.render('apologize', { message: 'Symbol not owned' });
             }
+
             const newNumberOfShares = dataFromDb.shares - shares;
+
             if ( newNumberOfShares < 0 ) {
                 return res.render('apologize', { message: 'You do not own that many shares!' });
             } else if (newNumberOfShares === 0) {
@@ -81,11 +83,13 @@ function StockController() {
                 dataFromDb.shares = newNumberOfShares;
                 dataFromDb.save();
             }
+
             const plusCash = shares * dataFromDb.price;
+            const minusShare = shares * -1;
             const history = new History({
                 symbol,
-                shares,
-                price: plusCash,
+                shares: minusShare,
+                price: dataFromDb.price,
                 owner: req.session._id
             });
             req.session.cash += plusCash;
@@ -101,14 +105,50 @@ function StockController() {
 
     this.buyStock = ( async (req, res) => {
         try {
-            const symbol = req.body.symbol;
+            const symbol = req.body.symbol.toUpperCase();
+            const shares = Number(req.body.shares);
+
             const quote = await Helpers.getStockData(symbol);
-            const price = Helpers.currencyFormatter(quote.price.regularMarketPrice, '$');
+            const priceOfShares = quote.price.regularMarketPrice * shares;
             const name = quote.price.shortName || 'NA';
-            res.render('quote', { price, name, symbol });      
+
+            let user = await User.findOne({_id: req.session._id});
+            
+            if (priceOfShares > user.cash) {
+                return res.render('apologize', { message: 'You do not have enough cash for the transaction!' });
+            }
+
+            const dataFromDb = await Stocks.findOne({owner: req.session._id, symbol: symbol});
+            console.log(dataFromDb);
+            if (!dataFromDb) {
+                const stock = new Stocks({
+                    symbol: symbol,
+                    name: name,
+                    price: quote.price.regularMarketPrice,
+                    shares: shares,
+                    owner: req.session._id
+                });
+                await stock.save();
+            } else {
+                dataFromDb.shares = shares + dataFromDb.shares;
+                await dataFromDb.save();
+            }
+
+            const history = new History({
+                symbol,
+                shares,
+                price: quote.price.regularMarketPrice,
+                owner: req.session._id
+            });
+            
+            await history.save();
+            const minusCash = priceOfShares * -1;
+            req.session.cash += minusCash;
+            await User.update({_id: req.session._id}, { $inc: { cash: minusCash }});
+
+            res.redirect('/');    
         } catch (error) {
-            console.log(error);
-            res.render('apologize', { message: 'Symbol does not exists!' })
+            res.render('apologize', { message: 'Why?!' })
         }      
         
     })

@@ -25,7 +25,10 @@ function UserAuthController () {
             if (existUsername) {
                 res.render('apologize', {message: 'User already exist'});
             } 
-            const user = new User(body);
+            const user = new User({
+                name: body.username,
+                password: body.password
+            });
             const savedUser = await user.save();
             req.session.name = savedUser.name;
             req.session.cash = savedUser.cash;

@@ -17,23 +17,26 @@ function UserAuthController () {
         const body = _.pick(req.body,['username', 'password', 'passwordagain']);
 
         if (body.password !== body.passwordagain) {
-            res.render('apologize', {message: 'Passwords do not match!'});
+           return  res.render('apologize', {message: 'Passwords do not match!'});
         }
 
         try {
             const existUsername = await User.findOne({name: body.username});
             if (existUsername) {
-                res.render('apologize', {message: 'User already exist'});
-            } 
-            const user = new User({
-                name: body.username,
-                password: body.password
-            });
-            const savedUser = await user.save();
-            req.session.name = savedUser.name;
-            req.session.cash = savedUser.cash;
-            req.session._id = savedUser._id;
-            res.redirect('/');
+                console.log('we are here');
+                return res.render('apologize', {message: 'User already exist'});
+            } else {
+                const user = new User({
+                    name: body.username,
+                    password: body.password
+                });
+                const savedUser = await user.save();
+                req.session.name = savedUser.name;
+                req.session.cash = savedUser.cash;
+                req.session._id = savedUser._id;
+                res.redirect('/');
+            }
+
 
         } catch (error) {
             res.render('apologize', {message: 'Something happened, please try it later!'});

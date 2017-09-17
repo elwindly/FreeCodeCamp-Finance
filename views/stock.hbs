@@ -1,13 +1,11 @@
-<div class="row justify-content-center">
-  <div class="col-8">
+<div class="row justify-content-center text-center">
+  <div class="col-4">
     <form method="post" action="/{{action}}">
       <div class="form-group">
-        <label for="symbol">Symbol</label>
         <input type="text" class="form-control" id="symbol" name="symbol" placeholder="Symbol">
       </div>
       {{#if trade}}
       <div class="form-group">
-        <label for="shares">Shares</label>
         <input type="number" class="form-control" id="shares" name="shares" placeholder="Shares" autocomplete="false">
       </div>
       {{/if}}
